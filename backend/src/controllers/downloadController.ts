@@ -275,10 +275,12 @@ async function processPlaylistDownload(
     if (jobStore.format === 'mp3') {
       formatArgs = ['-f', 'ba/b', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0'];
     } else {
-      formatArgs = ['-f', '96/95/bestvideo+bestaudio/best', '--merge-output-format', 'mp4'];
+      formatArgs = ['-f', '96/95/137+140/bestvideo[height<=1080]+bestaudio/18/best', '--merge-output-format', 'mp4'];
     }
 
     try {
+      const beforeFiles = new Set(fs.readdirSync(jobDir));
+
       const { childProcess, promise } = ytdlpService.downloadMedia(
         itemUrl,
         itemTemplate,
@@ -294,13 +296,14 @@ async function processPlaylistDownload(
       queueService.registerProcess(jobStore.jobId, childProcess);
       await promise;
 
-      // Locate downloaded file for this item (exclude temporary .part and .ytdl files)
-      const currentFiles = fs.readdirSync(jobDir).filter(
-        (f) => f.startsWith(`${item.position}_`) && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp')
+      const afterFiles = fs.readdirSync(jobDir);
+      const newFiles = afterFiles.filter(
+        (f) => !beforeFiles.has(f) && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp')
       );
-      if (currentFiles.length > 0) {
-        const itemPath = path.join(jobDir, currentFiles[0]);
-        if (fs.statSync(itemPath).size > 0) {
+
+      if (newFiles.length > 0) {
+        const itemPath = path.join(jobDir, newFiles[0]);
+        if (fs.existsSync(itemPath) && fs.statSync(itemPath).size > 0) {
           downloadedPaths.push(itemPath);
           itemProgress.status = 'completed';
           itemProgress.percent = 100;
@@ -308,7 +311,21 @@ async function processPlaylistDownload(
           itemProgress.status = 'failed';
         }
       } else {
-        itemProgress.status = 'failed';
+        const posFiles = fs.readdirSync(jobDir).filter(
+          (f) => f.startsWith(`${item.position}_`) && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp')
+        );
+        if (posFiles.length > 0) {
+          const itemPath = path.join(jobDir, posFiles[0]);
+          if (fs.statSync(itemPath).size > 0) {
+            downloadedPaths.push(itemPath);
+            itemProgress.status = 'completed';
+            itemProgress.percent = 100;
+          } else {
+            itemProgress.status = 'failed';
+          }
+        } else {
+          itemProgress.status = 'failed';
+        }
       }
     } catch (err: any) {
       itemProgress.status = 'failed';
