@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
-import { config, validateCookieConfig, getCookieFingerprint } from './config/env.js';
+import { config, validateCookieConfig, getCookieFingerprint, getSafeProxyInfo } from './config/env.js';
 import { ytdlpService } from './services/ytdlpService.js';
 import { ffmpegService } from './services/ffmpegService.js';
 import { queueService } from './services/queueService.js';
@@ -70,6 +70,7 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
   const ytDlpStatus = await ytdlpService.getVersion();
   const ffmpegStatus = await ffmpegService.getVersion();
   const cookieStatus = validateCookieConfig();
+  const safeProxy = getSafeProxyInfo();
   const queueStats = queueService.getStatus();
   const gitCommit = process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || '0cc8ef7';
   const poTokenConfigured = Boolean(config.poToken && config.poToken.trim().length > 0);
@@ -102,6 +103,7 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
       configured: poTokenConfigured,
       length: config.poToken ? config.poToken.trim().length : 0,
     },
+    proxy: safeProxy,
     queue: queueStats,
   });
 });

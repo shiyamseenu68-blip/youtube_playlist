@@ -106,6 +106,10 @@ export class YtDlpService {
       base.push('--cookies', cookiesPath);
     }
 
+    if (config.youtubeProxyUrl && config.youtubeProxyUrl.trim()) {
+      base.push('--proxy', config.youtubeProxyUrl.trim());
+    }
+
     return base;
   }
 

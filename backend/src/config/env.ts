@@ -12,6 +12,7 @@ export interface AppConfig {
   cookiesFilePath?: string;
   cookiesText?: string;
   poToken?: string;
+  youtubeProxyUrl?: string;
   tempDir: string;
   maxConcurrentDownloads: number;
 }
@@ -28,6 +29,7 @@ export const config: AppConfig = {
   cookiesFilePath: process.env.YOUTUBE_COOKIES_FILE,
   cookiesText: process.env.YOUTUBE_COOKIES_TEXT,
   poToken: process.env.YOUTUBE_PO_TOKEN || process.env.PO_TOKEN,
+  youtubeProxyUrl: process.env.YOUTUBE_PROXY_URL || process.env.HTTP_PROXY || process.env.HTTPS_PROXY,
   tempDir: process.env.TEMP_DIR || path.join(process.cwd(), 'tmp', 'downloads'),
   maxConcurrentDownloads: parseInt(process.env.MAX_CONCURRENT_DOWNLOADS || '1', 10),
 };
@@ -101,5 +103,39 @@ export const getCookieFingerprint = (): string | null => {
     return crypto.createHash('sha256').update(content.trim()).digest('hex').slice(0, 8);
   } catch {
     return null;
+  }
+};
+
+export interface SafeProxyInfo {
+  configured: boolean;
+  protocol: string | null;
+  host: string | null;
+  hasAuth: boolean;
+}
+
+export const getSafeProxyInfo = (): SafeProxyInfo => {
+  const proxyRaw = config.youtubeProxyUrl ? config.youtubeProxyUrl.trim() : '';
+  if (!proxyRaw) {
+    return { configured: false, protocol: null, host: null, hasAuth: false };
+  }
+
+  try {
+    const parsed = new URL(proxyRaw);
+    return {
+      configured: true,
+      protocol: parsed.protocol ? parsed.protocol.replace(':', '') : null,
+      host: parsed.host || null,
+      hasAuth: Boolean(parsed.username || parsed.password),
+    };
+  } catch {
+    const hasAuth = proxyRaw.includes('@');
+    const parts = proxyRaw.split('@');
+    const hostPart = parts.length > 1 ? parts[1] : parts[0];
+    return {
+      configured: true,
+      protocol: proxyRaw.includes('://') ? proxyRaw.split('://')[0] : 'http',
+      host: hostPart ? hostPart.split('/')[0] : null,
+      hasAuth,
+    };
   }
 };
