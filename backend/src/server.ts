@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
-import { config, validateCookieConfig } from './config/env.js';
+import { config, validateCookieConfig, getCookieFingerprint } from './config/env.js';
 import { ytdlpService } from './services/ytdlpService.js';
 import { ffmpegService } from './services/ffmpegService.js';
 import { queueService } from './services/queueService.js';
@@ -95,6 +95,7 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
       readable: cookieStatus.readable,
       sizeBytes: cookieStatus.size,
       lineCount: cookieStatus.lineCount,
+      fingerprint: getCookieFingerprint() || null,
       filePath: cookieStatus.filePath ? path.basename(cookieStatus.filePath) : null,
     },
     poToken: {

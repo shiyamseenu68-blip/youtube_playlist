@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -89,5 +90,16 @@ export const validateCookieConfig = (): {
     };
   } catch {
     return { configured: isConfigured, exists: true, readable: false, size: 0, lineCount: 0, filePath };
+  }
+};
+
+export const getCookieFingerprint = (): string | null => {
+  const filePath = getActiveCookiesFilePath();
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return crypto.createHash('sha256').update(content.trim()).digest('hex').slice(0, 8);
+  } catch {
+    return null;
   }
 };
