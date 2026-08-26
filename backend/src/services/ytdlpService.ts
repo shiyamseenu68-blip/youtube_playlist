@@ -31,22 +31,42 @@ export class YtDlpService {
   }
 
   private resolveBinaryPath(): string {
-    if (process.env.YTDLP_PATH) {
+    if (process.env.YTDLP_PATH && fs.existsSync(process.env.YTDLP_PATH)) {
       return process.env.YTDLP_PATH;
     }
 
-    // Common local Windows Python script locations fallback for dev
+    if (process.env.YT_DLP_PATH && fs.existsSync(process.env.YT_DLP_PATH)) {
+      return process.env.YT_DLP_PATH;
+    }
+
+    const localBin = path.join(process.cwd(), 'bin', process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+    if (fs.existsSync(localBin)) {
+      return localBin;
+    }
+
+    const nodeModulesBin = path.join(process.cwd(), 'node_modules', '.bin', process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+    if (fs.existsSync(nodeModulesBin)) {
+      return nodeModulesBin;
+    }
+
     if (process.platform === 'win32') {
       const winCandidates = [
-        'yt-dlp',
-        'yt-dlp.exe',
         'C:\\Users\\shiya\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\yt-dlp.exe',
         path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python311', 'Scripts', 'yt-dlp.exe'),
         path.join(process.env.USERPROFILE || '', 'AppData', 'Local', 'Microsoft', 'WindowsApps', 'yt-dlp.exe'),
       ];
 
       for (const candidate of winCandidates) {
-        if (candidate === 'yt-dlp' || candidate === 'yt-dlp.exe') continue;
+        if (fs.existsSync(candidate)) {
+          return candidate;
+        }
+      }
+    } else {
+      const linuxCandidates = [
+        '/usr/local/bin/yt-dlp',
+        '/usr/bin/yt-dlp',
+      ];
+      for (const candidate of linuxCandidates) {
         if (fs.existsSync(candidate)) {
           return candidate;
         }

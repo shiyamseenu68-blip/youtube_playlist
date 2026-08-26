@@ -4,8 +4,9 @@
   "private": true,
   "main": "dist/server.js",
   "scripts": {
+    "postinstall": "node scripts/install-ytdlp.js",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "node scripts/install-ytdlp.js && tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit"
   },
