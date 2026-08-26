@@ -9,6 +9,8 @@ export interface AppConfig {
   nodeEnv: string;
   corsOrigins: string[];
   cookiesFilePath?: string;
+  cookiesText?: string;
+  poToken?: string;
   tempDir: string;
   maxConcurrentDownloads: number;
 }
@@ -23,22 +25,43 @@ export const config: AppConfig = {
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
   cookiesFilePath: process.env.YOUTUBE_COOKIES_FILE,
+  cookiesText: process.env.YOUTUBE_COOKIES_TEXT,
+  poToken: process.env.YOUTUBE_PO_TOKEN || process.env.PO_TOKEN,
   tempDir: process.env.TEMP_DIR || path.join(process.cwd(), 'tmp', 'downloads'),
   maxConcurrentDownloads: parseInt(process.env.MAX_CONCURRENT_DOWNLOADS || '1', 10),
 };
 
+export const getActiveCookiesFilePath = (): string | undefined => {
+  if (config.cookiesFilePath && fs.existsSync(config.cookiesFilePath)) {
+    return config.cookiesFilePath;
+  }
+
+  if (config.cookiesText && config.cookiesText.trim()) {
+    try {
+      const autoCookieDir = path.join(process.cwd(), 'tmp');
+      if (!fs.existsSync(autoCookieDir)) {
+        fs.mkdirSync(autoCookieDir, { recursive: true });
+      }
+      const autoCookiePath = path.join(autoCookieDir, 'auto_youtube_cookies.txt');
+      fs.writeFileSync(autoCookiePath, config.cookiesText.trim(), 'utf-8');
+      return autoCookiePath;
+    } catch {
+      // Fallthrough
+    }
+  }
+
+  return undefined;
+};
+
 export const validateCookieConfig = (): { exists: boolean; readable: boolean; size: number } => {
-  if (!config.cookiesFilePath) {
+  const filePath = getActiveCookiesFilePath();
+  if (!filePath) {
     return { exists: false, readable: false, size: 0 };
   }
 
   try {
-    const exists = fs.existsSync(config.cookiesFilePath);
-    if (!exists) {
-      return { exists: false, readable: false, size: 0 };
-    }
-    const stats = fs.statSync(config.cookiesFilePath);
-    fs.accessSync(config.cookiesFilePath, fs.constants.R_OK);
+    const stats = fs.statSync(filePath);
+    fs.accessSync(filePath, fs.constants.R_OK);
     return { exists: true, readable: true, size: stats.size };
   } catch {
     return { exists: true, readable: false, size: 0 };

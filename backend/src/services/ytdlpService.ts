@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { config, validateCookieConfig } from '../config/env.js';
+import { config, validateCookieConfig, getActiveCookiesFilePath } from '../config/env.js';
 import { AppError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
@@ -93,10 +93,15 @@ export class YtDlpService {
       base.push('--ffmpeg-location', ffmpegPath);
     }
 
-    const cookieStatus = validateCookieConfig();
-    if (config.cookiesFilePath && cookieStatus.exists && cookieStatus.readable) {
-      base.push('--cookies', config.cookiesFilePath);
+    if (config.poToken && config.poToken.trim()) {
+      base.push('--extractor-args', `youtube:po_token=web+${config.poToken.trim()}`);
     }
+
+    const cookiesPath = getActiveCookiesFilePath();
+    if (cookiesPath && fs.existsSync(cookiesPath)) {
+      base.push('--cookies', cookiesPath);
+    }
+
     return base;
   }
 
