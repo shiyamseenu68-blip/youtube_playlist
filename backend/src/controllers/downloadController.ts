@@ -432,7 +432,7 @@ export const downloadFileHandler = (req: Request, res: Response): void => {
 
   const safeName = job.finalFileName || `download.${job.format}`;
   
-  res.download(job.finalFilePath, safeName, (err) => {
+  res.download(job.finalFilePath, safeName, (err: any) => {
     if (err) {
       logger.warn('Client stream interrupted during file download', { jobId, error: err.message });
     }

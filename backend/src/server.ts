@@ -23,7 +23,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       if (!origin || config.corsOrigins.includes(origin) || config.nodeEnv === 'development') {
         callback(null, true);
       } else {
@@ -51,7 +51,7 @@ if (fs.existsSync(frontendDistPath)) {
 }
 
 // Health Endpoint
-app.get('/api/health', async (_req, res) => {
+app.get('/api/health', async (_req: express.Request, res: express.Response) => {
   const ytDlpStatus = await ytdlpService.getVersion();
   const ffmpegStatus = await ffmpegService.getVersion();
   const cookieStatus = validateCookieConfig();
