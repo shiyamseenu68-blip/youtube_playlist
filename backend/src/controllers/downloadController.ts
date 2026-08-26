@@ -2,12 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
 import { z } from 'zod';
 import { validateYouTubeUrl, classifyYouTubeUrl, sanitizeFilename } from '../utils/sanitize.js';
-
-const requireModule = createRequire(path.join(process.cwd(), 'package.json'));
-const { ZipArchive } = requireModule('archiver');
+import { ZipArchive } from 'archiver';
 import { ytdlpService } from '../services/ytdlpService.js';
 import { ffmpegService } from '../services/ffmpegService.js';
 import { cleanupService } from '../services/cleanupService.js';
