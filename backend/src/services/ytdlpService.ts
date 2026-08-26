@@ -422,8 +422,8 @@ export class YtDlpService {
   private parseYtDlpError(stderr: string, code: number | null): AppError {
     const raw = stderr.toLowerCase();
 
-    if (raw.includes('sign in to confirm you\'re not a bot') || raw.includes('bot detection') || raw.includes('429')) {
-      return new AppError('BOT_DETECTION', 'YouTube bot detection triggered. Authentication required.', 429, stderr);
+    if (raw.includes('sign in to confirm') || raw.includes('not a bot') || raw.includes('bot detection') || raw.includes('429')) {
+      return new AppError('BOT_DETECTION', 'YouTube bot detection triggered. Authentication or cookies/PO-token required.', 429, stderr);
     }
     if (raw.includes('private video') || raw.includes('this video is private')) {
       return new AppError('PRIVATE_VIDEO', 'This YouTube video is private.', 403, stderr);
