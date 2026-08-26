@@ -85,6 +85,8 @@ export class YtDlpService {
     const base = [
       '--js-runtimes',
       `node:${nodeBin}`,
+      '--extractor-args',
+      'youtube:player_client=mweb,android,web',
     ];
 
     if (ffmpegPath) {
