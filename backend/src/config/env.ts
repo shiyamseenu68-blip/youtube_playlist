@@ -60,17 +60,34 @@ export const getActiveCookiesFilePath = (): string | undefined => {
   return undefined;
 };
 
-export const validateCookieConfig = (): { exists: boolean; readable: boolean; size: number } => {
+export const validateCookieConfig = (): {
+  configured: boolean;
+  exists: boolean;
+  readable: boolean;
+  size: number;
+  lineCount: number;
+  filePath?: string;
+} => {
   const filePath = getActiveCookiesFilePath();
+  const isConfigured = Boolean(config.cookiesFilePath || config.cookiesText);
   if (!filePath) {
-    return { exists: false, readable: false, size: 0 };
+    return { configured: isConfigured, exists: false, readable: false, size: 0, lineCount: 0 };
   }
 
   try {
     const stats = fs.statSync(filePath);
     fs.accessSync(filePath, fs.constants.R_OK);
-    return { exists: true, readable: true, size: stats.size };
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n').filter((l) => l.trim().length > 0).length;
+    return {
+      configured: isConfigured,
+      exists: true,
+      readable: true,
+      size: stats.size,
+      lineCount: lines,
+      filePath,
+    };
   } catch {
-    return { exists: true, readable: false, size: 0 };
+    return { configured: isConfigured, exists: true, readable: false, size: 0, lineCount: 0, filePath };
   }
 };

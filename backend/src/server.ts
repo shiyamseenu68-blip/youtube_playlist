@@ -68,11 +68,14 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
   const ffmpegStatus = await ffmpegService.getVersion();
   const cookieStatus = validateCookieConfig();
   const queueStats = queueService.getStatus();
+  const gitCommit = process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || '0cc8ef7';
+  const poTokenConfigured = Boolean(config.poToken && config.poToken.trim().length > 0);
 
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     env: config.nodeEnv,
+    commit: gitCommit,
     ytDlp: {
       available: ytDlpStatus.available,
       version: ytDlpStatus.version || null,
@@ -84,10 +87,16 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
       error: ffmpegStatus.error || null,
     },
     cookies: {
-      configured: Boolean(config.cookiesFilePath),
+      configured: cookieStatus.configured,
       exists: cookieStatus.exists,
       readable: cookieStatus.readable,
       sizeBytes: cookieStatus.size,
+      lineCount: cookieStatus.lineCount,
+      filePath: cookieStatus.filePath ? path.basename(cookieStatus.filePath) : null,
+    },
+    poToken: {
+      configured: poTokenConfigured,
+      length: config.poToken ? config.poToken.trim().length : 0,
     },
     queue: queueStats,
   });
