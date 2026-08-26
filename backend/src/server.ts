@@ -20,6 +20,9 @@ import { errorHandler } from './utils/errors.js';
 
 const app = express();
 
+// Trust reverse proxy headers from 1 hop (Render/Cloudflare load balancer)
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(
   cors({
