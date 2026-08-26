@@ -46,7 +46,7 @@ export const errorHandler = (
       error: {
         code: err.code,
         message: err.message,
-        details: process.env.NODE_ENV === 'development' ? err.details : undefined,
+        details: err.details ? err.details.trim() : undefined,
       },
     });
     return;
@@ -56,7 +56,8 @@ export const errorHandler = (
   res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
-      message: 'An unexpected internal server error occurred.',
+      message: err.message || 'An unexpected internal server error occurred.',
+      details: err.stack || undefined,
     },
   });
 };

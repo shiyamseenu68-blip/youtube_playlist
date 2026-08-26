@@ -81,11 +81,10 @@ export class YtDlpService {
    */
   private getBaseArgs(): string[] {
     const ffmpegPath = ffmpegService.getBinaryPath();
+    const nodeBin = process.execPath || 'node';
     const base = [
-      '--extractor-args',
-      'youtube:player_client=mweb,android',
       '--js-runtimes',
-      'node',
+      `node:${nodeBin}`,
       '--user-agent',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
     ];
@@ -434,7 +433,17 @@ export class YtDlpService {
       return new AppError('FORMAT_UNAVAILABLE', 'The requested video/audio format is unavailable.', 400, stderr);
     }
 
-    return new AppError('YTDLP_FAILED', `yt-dlp execution failed (code ${code}).`, 500, stderr);
+    const cleanLines = stderr
+      ? stderr
+          .trim()
+          .split('\n')
+          .filter((l) => l.startsWith('ERROR:') || l.startsWith('WARNING:') || l.includes('Error'))
+          .join('; ')
+      : '';
+
+    const detailMsg = cleanLines || (stderr ? stderr.trim().slice(-300) : `Exit code ${code}`);
+
+    return new AppError('YTDLP_FAILED', `yt-dlp execution failed: ${detailMsg}`, 500, stderr);
   }
 }
 
