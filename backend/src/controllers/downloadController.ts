@@ -276,8 +276,6 @@ async function processPlaylistDownload(
     }
 
     try {
-      const beforeFiles = new Set(fs.readdirSync(jobDir));
-
       const { childProcess, promise } = ytdlpService.downloadMedia(
         itemUrl,
         itemTemplate,
@@ -293,13 +291,15 @@ async function processPlaylistDownload(
       queueService.registerProcess(jobStore.jobId, childProcess);
       await promise;
 
-      const afterFiles = fs.readdirSync(jobDir);
-      const newFiles = afterFiles.filter(
-        (f) => !beforeFiles.has(f) && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp')
+      const filesOnDisk = fs.readdirSync(jobDir).filter(
+        (f) => !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp') && !f.endsWith('.json') && !f.endsWith('.zip')
       );
+      const uncollectedFiles = filesOnDisk
+        .map((f) => path.join(jobDir, f))
+        .filter((p) => !downloadedPaths.includes(p));
 
-      if (newFiles.length > 0) {
-        const itemPath = path.join(jobDir, newFiles[0]);
+      if (uncollectedFiles.length > 0) {
+        const itemPath = uncollectedFiles[0];
         if (fs.existsSync(itemPath) && fs.statSync(itemPath).size > 0) {
           downloadedPaths.push(itemPath);
           itemProgress.status = 'completed';
@@ -308,21 +308,7 @@ async function processPlaylistDownload(
           itemProgress.status = 'failed';
         }
       } else {
-        const posFiles = fs.readdirSync(jobDir).filter(
-          (f) => f.startsWith(`${item.position}_`) && !f.endsWith('.part') && !f.endsWith('.ytdl') && !f.endsWith('.temp')
-        );
-        if (posFiles.length > 0) {
-          const itemPath = path.join(jobDir, posFiles[0]);
-          if (fs.statSync(itemPath).size > 0) {
-            downloadedPaths.push(itemPath);
-            itemProgress.status = 'completed';
-            itemProgress.percent = 100;
-          } else {
-            itemProgress.status = 'failed';
-          }
-        } else {
-          itemProgress.status = 'failed';
-        }
+        itemProgress.status = 'failed';
       }
     } catch (err: any) {
       itemProgress.status = 'failed';
