@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
-import { config, validateCookieConfig, getCookieFingerprint, getActiveCookiesFilePath } from './config/env.js';
+import { config, validateCookieConfig, getCookieFingerprint } from './config/env.js';
 import { ytdlpService } from './services/ytdlpService.js';
 import { ffmpegService } from './services/ffmpegService.js';
 import { queueService } from './services/queueService.js';
@@ -103,54 +103,6 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
       length: config.poToken ? config.poToken.trim().length : 0,
     },
     queue: queueStats,
-  });
-});
-
-// Safe Non-Secret Cookie Env vs File Comparison Endpoint
-app.get('/api/cookie-check', (_req: express.Request, res: express.Response) => {
-  const crypto = require('crypto');
-  const envRaw = process.env.YOUTUBE_COOKIES_TEXT || '';
-  const isConfigured = envRaw.trim().length > 0;
-  
-  let envNormalized = envRaw.trim().replace(/\\n/g, '\n');
-  if (isConfigured && !envNormalized.startsWith('# Netscape')) {
-    envNormalized = '# Netscape HTTP Cookie File\n# http://www.netscape.com/newsref/std/cookie_spec.html\n# This is a generated file! Do not edit.\n\n' + envNormalized;
-  }
-
-  const envFingerprint = isConfigured ? crypto.createHash('sha256').update(envNormalized.trim()).digest('hex').slice(0, 8) : null;
-  const envLines = isConfigured ? envNormalized.split('\n').filter((l: string) => l.trim().length > 0).length : 0;
-  const envBytes = isConfigured ? Buffer.byteLength(envNormalized, 'utf-8') : 0;
-
-  const cookieFilePath = getActiveCookiesFilePath();
-  let fileFingerprint = null;
-  let fileBytes = 0;
-  let fileLines = 0;
-  let fileExists = false;
-
-  if (cookieFilePath && fs.existsSync(cookieFilePath)) {
-    fileExists = true;
-    const fileContent = fs.readFileSync(cookieFilePath, 'utf-8');
-    fileFingerprint = crypto.createHash('sha256').update(fileContent.trim()).digest('hex').slice(0, 8);
-    fileBytes = fs.statSync(cookieFilePath).size;
-    fileLines = fileContent.split('\n').filter((l: string) => l.trim().length > 0).length;
-  }
-
-  res.json({
-    env: {
-      configured: isConfigured,
-      byteLength: envBytes,
-      charLength: envRaw.length,
-      lineCount: envLines,
-      fingerprint: envFingerprint,
-    },
-    file: {
-      exists: fileExists,
-      byteLength: fileBytes,
-      lineCount: fileLines,
-      fingerprint: fileFingerprint,
-      fileName: cookieFilePath ? path.basename(cookieFilePath) : null,
-    },
-    match: envFingerprint === fileFingerprint,
   });
 });
 
