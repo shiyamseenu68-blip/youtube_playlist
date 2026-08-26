@@ -106,6 +106,49 @@ app.get('/api/health', async (_req: express.Request, res: express.Response) => {
   });
 });
 
+// Safe Verbose yt-dlp Extractor Diagnostic Endpoint
+app.get('/api/diag-verbose', async (_req: express.Request, res: express.Response) => {
+  try {
+    const { spawn } = await import('child_process');
+    const { getActiveCookiesFilePath } = await import('./config/env.js');
+    const binaryPath = ytdlpService.getBinaryPath();
+    const cookiesPath = getActiveCookiesFilePath();
+    const nodeBin = process.execPath || 'node';
+    const args = [
+      '--verbose',
+      '--no-playlist',
+      '--dump-single-json',
+      '--js-runtimes', `node:${nodeBin}`,
+      '--extractor-args', 'youtube:player_client=mweb,android,web',
+    ];
+    if (cookiesPath && fs.existsSync(cookiesPath)) {
+      args.push('--cookies', cookiesPath);
+    }
+    args.push('https://www.youtube.com/watch?v=kPa7bsKwL-c');
+
+    const proc = spawn(binaryPath, args);
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', (d) => { stdout += d.toString(); });
+    proc.stderr.on('data', (d) => { stderr += d.toString(); });
+
+    proc.on('close', (code) => {
+      const safeStderrLines = stderr
+        .split('\n')
+        .filter((line) => !line.toLowerCase().includes('cookie') && !line.toLowerCase().includes('token'))
+        .map((line) => line.replace(/(sid|login_info|apisid|hsid)=[^;\s]+/gi, '$1=REDACTED'));
+
+      res.json({
+        exitCode: code,
+        hasStdoutJson: stdout.trim().length > 0 && stdout.trim().startsWith('{'),
+        stderrLines: safeStderrLines,
+      });
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Analysis & Metadata Routes
 app.post('/api/analyze', analyzeHandler);
 app.post('/api/info', getMetadataHandler);

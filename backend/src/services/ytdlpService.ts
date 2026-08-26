@@ -26,6 +26,10 @@ import { ffmpegService } from './ffmpegService.js';
 export class YtDlpService {
   private binaryPath: string = 'yt-dlp';
 
+  public getBinaryPath(): string {
+    return this.binaryPath;
+  }
+
   constructor() {
     this.binaryPath = this.resolveBinaryPath();
   }
