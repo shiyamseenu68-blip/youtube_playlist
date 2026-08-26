@@ -24,11 +24,23 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin || config.corsOrigins.includes(origin) || config.nodeEnv === 'development') {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      if (!origin || config.corsOrigins.includes('*') || config.nodeEnv === 'development') {
+        return callback(null, true);
       }
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      const isExplicitlyAllowed = config.corsOrigins.some((allowed) => {
+        if (allowed === cleanOrigin) return true;
+        if (allowed.startsWith('*.')) {
+          return cleanOrigin.endsWith(allowed.slice(2));
+        }
+        return false;
+      });
+
+      if (isExplicitlyAllowed || cleanOrigin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+
+      callback(null, false);
     },
     credentials: true,
   })

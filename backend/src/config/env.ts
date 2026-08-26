@@ -14,8 +14,8 @@ export interface AppConfig {
 }
 
 const parseOrigins = (raw: string | undefined): string[] => {
-  if (!raw) return ['http://localhost:5173', 'http://localhost:3000'];
-  return raw.split(',').map((origin) => origin.trim()).filter(Boolean);
+  if (!raw || raw.trim() === '' || raw.trim() === '*') return ['*'];
+  return raw.split(',').map((origin) => origin.trim().replace(/\/+$/, '')).filter(Boolean);
 };
 
 export const config: AppConfig = {
