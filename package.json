@@ -1,0 +1,14 @@
+{
+  "name": "youtube-downloader-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YouTube Video, Audio & Playlist Downloader",
+  "scripts": {
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "typecheck:backend": "npm --prefix backend run typecheck",
+    "typecheck:frontend": "npm --prefix frontend run typecheck",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend"
+  }
+}

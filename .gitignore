@@ -1,0 +1,24 @@
+# Node.js dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.output/
+.vercel/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Temporary files & storage
+tmp/
+downloads/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
