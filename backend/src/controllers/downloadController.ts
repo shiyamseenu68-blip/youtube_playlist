@@ -26,6 +26,7 @@ export interface PlaylistItemProgress {
   position: number;
   status: 'queued' | 'downloading' | 'completed' | 'failed';
   percent: number;
+  error?: string;
 }
 
 export interface JobStore {
@@ -253,12 +254,13 @@ async function processPlaylistDownload(
 
   for (let i = 0; i < targetItems.length; i++) {
     const item = targetItems[i];
-    const itemProgress = jobStore.playlistItemsProgress?.[i] || {
+    const itemProgress: PlaylistItemProgress = jobStore.playlistItemsProgress?.[i] || {
       itemId: item.id,
       title: item.title,
       position: item.position,
       status: 'downloading',
       percent: 0,
+      error: undefined,
     };
     itemProgress.status = 'downloading';
     jobStore.currentItemIndex = i + 1;
@@ -312,7 +314,8 @@ async function processPlaylistDownload(
       }
     } catch (err: any) {
       itemProgress.status = 'failed';
-      logger.warn('Individual playlist item download failed', { itemId: item.id, error: err.message });
+      itemProgress.error = err.message || 'Download failed';
+      logger.error('Individual playlist item download failed', { itemId: item.id, error: err.message, details: err.details });
     }
   }
 
