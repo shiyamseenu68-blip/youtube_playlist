@@ -43,7 +43,14 @@ export const getActiveCookiesFilePath = (): string | undefined => {
         fs.mkdirSync(autoCookieDir, { recursive: true });
       }
       const autoCookiePath = path.join(autoCookieDir, 'auto_youtube_cookies.txt');
-      fs.writeFileSync(autoCookiePath, config.cookiesText.trim(), 'utf-8');
+      
+      let rawText = config.cookiesText.trim();
+      rawText = rawText.replace(/\\n/g, '\n');
+      if (!rawText.startsWith('# Netscape')) {
+        rawText = '# Netscape HTTP Cookie File\n# http://www.netscape.com/newsref/std/cookie_spec.html\n# This is a generated file! Do not edit.\n\n' + rawText;
+      }
+
+      fs.writeFileSync(autoCookiePath, rawText, 'utf-8');
       return autoCookiePath;
     } catch {
       // Fallthrough

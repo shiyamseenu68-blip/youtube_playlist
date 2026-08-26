@@ -149,7 +149,7 @@ async function processSingleVideoDownload(jobStore: JobStore, jobDir: string): P
   let formatArgs: string[] = [];
 
   if (jobStore.format === 'mp3') {
-    formatArgs = ['-f', 'ba/b', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0', '--extractor-args', 'youtube:player_client=android,mweb'];
+    formatArgs = ['-f', 'ba/b', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0'];
   } else {
     const quality = jobStore.quality;
     const match = quality?.match(/\d+/);
@@ -273,7 +273,7 @@ async function processPlaylistDownload(
 
     let formatArgs: string[] = [];
     if (jobStore.format === 'mp3') {
-      formatArgs = ['-f', 'ba/b', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0', '--extractor-args', 'youtube:player_client=android,mweb'];
+      formatArgs = ['-f', 'ba/b', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0'];
     } else {
       formatArgs = ['-f', '96/95/bestvideo+bestaudio/best', '--merge-output-format', 'mp4'];
     }
