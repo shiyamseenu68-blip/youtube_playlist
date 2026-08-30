@@ -4,9 +4,10 @@
 
 body {
   margin: 0;
-  background-color: #020617;
+  background-color: #030712;
   color: #f8fafc;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -25,4 +26,77 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+/* Custom Premium Animations */
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes pulseAura {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes spinOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reverseOrbit {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes floatParticles {
+  0% {
+    transform: translateY(0px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSweep 2.5s infinite linear;
+}
+
+.animate-pulse-aura {
+  animation: pulseAura 3s infinite ease-in-out;
+}
+
+.animate-spin-orbit {
+  animation: spinOrbit 12s infinite linear;
+}
+
+.animate-reverse-orbit {
+  animation: reverseOrbit 8s infinite linear;
+}
+
+.animate-float-particle {
+  animation: floatParticles 3s infinite ease-in-out;
 }

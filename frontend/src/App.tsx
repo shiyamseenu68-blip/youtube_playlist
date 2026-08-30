@@ -6,6 +6,7 @@ import { VideoCard } from './components/VideoCard';
 import { PlaylistCard } from './components/PlaylistCard';
 import { ProgressCard } from './components/ProgressCard';
 import { ErrorAlert } from './components/ErrorAlert';
+import { PremiumIntro } from './components/PremiumIntro';
 import {
   analyzeUrl,
   initiateDownload,
@@ -17,6 +18,7 @@ import {
 import { ProgressState } from './types';
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [analyzedResult, setAnalyzedResult] = useState<AnalyzeResponse | null>(null);
@@ -132,11 +134,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-between pb-12">
-      <div className="w-full">
-        <Header />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-between pb-12 relative overflow-x-hidden">
+      {/* Premium Cinematic Intro Overlay */}
+      {showIntro && <PremiumIntro onComplete={() => setShowIntro(false)} />}
 
-        <main className="px-4">
+      <div className="w-full">
+        <Header onReplayIntro={() => setShowIntro(true)} />
+
+        <main className="px-4 max-w-5xl mx-auto">
           <UrlForm onAnalyze={handleAnalyze} isLoading={isAnalyzing} disabled={isDownloading} />
 
           {errorMessage && (
@@ -172,8 +177,8 @@ export default function App() {
                 analyzedResult.playlistContext && (
                   <PlaylistCard
                     metadata={analyzedResult.playlistContext}
-                    onStartDownload={(format, selectedItemIds) =>
-                      handleStartDownload(format, undefined, selectedItemIds)
+                    onStartDownload={(format, selectedItemIds, quality) =>
+                      handleStartDownload(format, quality, selectedItemIds)
                     }
                     isDownloading={isDownloading}
                   />
@@ -191,8 +196,9 @@ export default function App() {
         </main>
       </div>
 
-      <footer className="mt-12 text-center text-xs text-slate-500">
-        YouTube Downloader Engine • Decoupled Vercel + Render Architecture
+      <footer className="mt-12 text-center text-xs text-slate-500 font-mono space-y-1">
+        <div>YouTube Downloader Engine • Decoupled Vercel + Render Architecture</div>
+        <div className="text-violet-400/80 font-bold">Created by Shiyam S</div>
       </footer>
     </div>
   );
